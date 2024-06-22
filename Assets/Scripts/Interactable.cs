@@ -1,11 +1,14 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Interactable : MonoBehaviour
 {
     #region Variables
     private bool canInteract = false;
     protected GameObject player;
+    public static GameObject eToInteractText;
     #endregion
+
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -15,6 +18,7 @@ public class Interactable : MonoBehaviour
             {
                 player = collision.gameObject;
             }
+            GameManager.instance.eToInteractText.SetActive(true);
             canInteract = true;
         }
     }
@@ -22,6 +26,7 @@ public class Interactable : MonoBehaviour
     {
         if (collision.tag == "Player")
         {
+            GameManager.instance.eToInteractText.SetActive(false);
             canInteract = false;
         }
     }
@@ -36,6 +41,5 @@ public class Interactable : MonoBehaviour
 
     public virtual void Interact()
     {
-        Debug.Log("Interacted");
     }
 }

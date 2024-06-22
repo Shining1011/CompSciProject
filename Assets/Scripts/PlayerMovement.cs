@@ -1,13 +1,15 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
     #region Variables
     // General
+    public static PlayerMovement instance;
     [SerializeField]
     private float speed;
     private Rigidbody2D rb;
-    private BoxCollider2D collider;
+    private BoxCollider2D playerCollider;
     [SerializeField]
     private Transform groundPoint;
     //
@@ -34,29 +36,46 @@ public class PlayerMovement : MonoBehaviour
 
     // Animation
     [SerializeField]
+    private SpriteRenderer gfxRenderer;
+    [SerializeField]
     private Animator animator;
     [SerializeField]
     private string walkingAnimation;
     [SerializeField]
     private string idleAnimation;
-    [SerializeField]
-    private Transform playerGfx;
     //
     #endregion
+
+    private void Awake()
+    {
+        
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else if(instance != this)
+        {
+
+            Destroy(gameObject);
+        }
+        DontDestroyOnLoad(gameObject);
+        gameObject.SetActive(false);
+    }
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        collider = GetComponent<BoxCollider2D>();
+        playerCollider = GetComponent<BoxCollider2D>();
         stepCheckDifference = (stepMax.position - groundPoint.position).magnitude;
-        stepCheckBox = new Vector2(collider.size.x + 2f*stepCheckDistance, stepCheckHeight);
+        stepCheckBox = new Vector2(playerCollider.size.x + 2f*stepCheckDistance, stepCheckHeight);
     }
-
     
     private void Update()
     {
-        Move();
-        MoveFlashLight();
+        if (Time.timeScale > 0f)
+        {
+            Move();
+        }
     }
 
     private void Move()
@@ -66,16 +85,16 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.A))
         {
             Animations.instance.PlayAnimation(animator, walkingAnimation);
-            Vector3 flip = Vector3.up * 180f;
-            playerGfx.eulerAngles = flip;
+            gfxRenderer.flipX = true;
             move += -Vector3.right * speed;
+            MoveFlashLight(1);
         }
         if (Input.GetKey(KeyCode.D))
         {
             Animations.instance.PlayAnimation(animator, walkingAnimation);
-            Vector3 flip = Vector3.zero;
-            playerGfx.eulerAngles = flip;
+            gfxRenderer.flipX = false;
             move += Vector3.right * speed;
+            MoveFlashLight(-1);
         }
         if(move.x == 0)
         {
@@ -97,10 +116,8 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void MoveFlashLight()
+    private void MoveFlashLight(int side)
     {
-        Vector2 look = flashLightTransform.InverseTransformPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        float angle = Mathf.Atan2(look.y, look.x) * Mathf.Rad2Deg - 90f;
-        flashLightTransform.Rotate(0, 0, angle);
+        flashLightTransform.localRotation = Quaternion.Euler(0f, 0f, 90f * side);
     }
 }
